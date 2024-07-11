@@ -1,3 +1,4 @@
+/*******************************Imports***********************************/
 import { Component, Output, Input, EventEmitter, OnInit, OnDestroy, HostListener, ElementRef } from '@angular/core';
 import { ImageService } from '../../service/images.service';
 import { ImageWithMetadata } from '../../interface/imagewithmetadata';
@@ -7,18 +8,27 @@ import { Subscription } from 'rxjs';
   selector: 'app-image-slider',
   templateUrl: './image-slider.component.html',
 })
+
+//Class Image Slider Component
 export class ImageSliderComponent implements OnInit, OnDestroy {
+  /*******************************Decorators***********************************/
   @Output() imageSelect = new EventEmitter<ImageWithMetadata | null>();
   @Input() SaveCurrentImageEvent = new EventEmitter<void>();
   @Input() SaveAllImagesEvent = new EventEmitter<void>();
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event): void {
+    this.updatePagination();
+  }
 
+  /*******************************Variables***********************************/
   imagesWithMetadata: ImageWithMetadata[] = [];
   selectedImageIndex: number | null = null;
   imageUrls: string[] = [];
 
+  //paginate
   currentPage = 1;
-  pageSize = 10; // Asegurarse de que el tamaño de la página sea 10
-  imageSize = 100; // Tamaño predeterminado de la imagen
+  pageSize = 10;
+  imageSize = 100;
   paginatedImages: ImageWithMetadata[] = [];
   paginatedImageUrls: string[] = [];
 
@@ -26,12 +36,14 @@ export class ImageSliderComponent implements OnInit, OnDestroy {
   private saveCurrentImageSubscription: Subscription;
   private saveAllImagesSubscription: Subscription;
 
+  /*******************************Constructor***********************************/
   constructor(private imageService: ImageService, private el: ElementRef) {
     this.imagesSubscription = new Subscription();
     this.saveCurrentImageSubscription = new Subscription();
     this.saveAllImagesSubscription = new Subscription();
   }
 
+  /******************************Angular_Functions*******************************/
   ngOnInit(): void {
     this.imagesSubscription = this.imageService.getImagesObservable().subscribe({
       next: (updatedImages) => {
@@ -65,26 +77,33 @@ export class ImageSliderComponent implements OnInit, OnDestroy {
     }
   }
 
-  @HostListener('window:resize', ['$event'])
-  onResize(event: Event): void {
-    this.updatePagination();
+  /******************************Handle_Functions*******************************/
+  handleSaveCurrentImage() {
+    this.updateImageUrls();
+    this.imageService.saveImageWithMetadata();
   }
 
+  handleSaveAllImages() {
+    this.updateImageUrls();
+    this.imageService.saveAllImagesWithMetadata();
+  }
+
+  /************************Getter_and_Setter_Funtions***************************/
+  get totalPages(): number {
+    return Math.ceil(this.imagesWithMetadata.length / this.pageSize);
+  }
+
+  /******************************Others_Functions*******************************/
   updateImageUrls(): void {
     this.imageUrls = this.imagesWithMetadata.map(image => URL.createObjectURL(image.file));
   }
 
+  //paginate
   updatePagination(): void {
     this.paginateImages();
   }
 
-  paginateImages(): void {
-    const start = (this.currentPage - 1) * this.pageSize;
-    const end = start + this.pageSize;
-    this.paginatedImages = this.imagesWithMetadata.slice(start, end);
-    this.paginatedImageUrls = this.imageUrls.slice(start, end);
-  }
-
+  // Select image from image slider
   async selectImage(index: number): Promise<void> {
     const actualIndex = (this.currentPage - 1) * this.pageSize + index;
 
@@ -99,11 +118,13 @@ export class ImageSliderComponent implements OnInit, OnDestroy {
     }
   }
 
+  //Check if is selected
   isSelected(index: number): boolean {
     const actualIndex = (this.currentPage - 1) * this.pageSize + index;
     return this.selectedImageIndex === actualIndex;
   }
 
+  // Delete image from slider
   deleteImage(index: number): void {
     const actualIndex = (this.currentPage - 1) * this.pageSize + index;
 
@@ -119,22 +140,22 @@ export class ImageSliderComponent implements OnInit, OnDestroy {
         this.selectedImageIndex--;
         this.imageService.setSelectedImageIndex(this.selectedImageIndex);
       }
+
+      // Check if the current page is empty
+      if (this.paginatedImages.length === 0 && this.currentPage > 1) {
+        this.currentPage--; // Go age back
+      }
+
       this.paginateImages();
     }
   }
 
-  handleSaveCurrentImage() {
-    this.updateImageUrls();
-    this.imageService.saveImageWithMetadata();
-  }
-
-  handleSaveAllImages() {
-    this.updateImageUrls();
-    this.imageService.saveAllImagesWithMetadata();
-  }
-
-  get totalPages(): number {
-    return Math.ceil(this.imagesWithMetadata.length / this.pageSize);
+  //paginate
+  paginateImages(): void {
+    const start = (this.currentPage - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    this.paginatedImages = this.imagesWithMetadata.slice(start, end);
+    this.paginatedImageUrls = this.imageUrls.slice(start, end);
   }
 
   previousPage(): void {

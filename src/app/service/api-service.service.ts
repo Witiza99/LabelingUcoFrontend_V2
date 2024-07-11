@@ -1,20 +1,23 @@
+/*******************************Imports***********************************/
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 
+//Service connect to Api
 export class ApiService {
+  /*******************************Variables***********************************/
+  private apiUrl = environment.api_url; // API URL
 
-  private apiUrl = environment.api_url; // URL de tu API
-
+   /************************Getter_and_Setter_Funtions***************************/
   constructor(private http: HttpClient) { }
 
-  // Método para llamar a la API y enviar los archivos y el frame rate
+  /******************************Others_Functions*******************************/
+  // Methot to call Api with files and framerate
   processVideo(files: File[], frameRates: number[]): Observable<Blob> {
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) {
@@ -22,7 +25,17 @@ export class ApiService {
     }
     formData.append('frameRates', JSON.stringify(frameRates));
 
-    // Ajusta la llamada HTTP con la configuración correcta del responseType
-    return this.http.post(this.apiUrl + 'api/procesar-video', formData, { responseType: 'blob' });
+    return this.http.post(this.apiUrl + 'api/process-video', formData, { responseType: 'blob' });
+  }
+  // Methot to call Api with file and json (metadata)
+  embedInfoInImage(imageFile: File, jsonData: string){
+    // Create FormData to send image and Json to backend
+    const formData = new FormData();
+    formData.append('imagen', imageFile);
+    formData.append('jsonMetadata', jsonData);
+
+    return this.http.post(environment.api_url + 'api/add-metadata', formData, {
+      responseType: 'blob',
+    });
   }
 }

@@ -1,4 +1,4 @@
-// src/app/components/sidebar/sidebar.component.ts
+/*******************************Imports***********************************/
 import { Component, Output, EventEmitter, OnInit } from '@angular/core';
 import { PropertierstoolService } from '../../service/propertierstool.service';
 import { ImageService } from '../../service/images.service';
@@ -9,33 +9,39 @@ import { ImageService } from '../../service/images.service';
   templateUrl: './sidebar.component.html',
 })
 
+//Class Sidebar
 export class SidebarComponent implements OnInit{
+  /*******************************Decorators***********************************/
   @Output() saveImageEvent = new EventEmitter<void>();
   @Output() saveAllImagesEvent = new EventEmitter<void>();
 
-  label: string = 'label';        // Etiqueta del rectángulo
-  color: string = '#FF0000'; // Color inicial
-  thickness: number = 2;     // Grosor inicial
-  selectedImageIndex: number | null = null; // Índice seleccionado
-  images: any[] = []; // Arreglo de imágenes
+  /*******************************Variables***********************************/
+  label: string = 'label';
+  color: string = '#FF0000'; 
+  thickness: number = 2;    
+  selectedImageIndex: number | null = null; 
+  images: any[] = [];
 
+  /*******************************Constructor***********************************/
   constructor(
     private propertierstoolService: PropertierstoolService,
     private imageService: ImageService
   ) {}
 
+  /******************************Angular_Functions*******************************/
   ngOnInit(): void {
-    // Suscríbete al observable para obtener el índice seleccionado
+    // Subscribe to get index
     this.imageService.getIndexObservable().subscribe(index => {
       this.selectedImageIndex = index;
     });
 
-    // Obtener el arreglo de imágenes
+    // Subscribe to get image array
     this.imageService.getImagesObservable().subscribe((images) => {
       this.images = images;
     });
   }
 
+  /******************************Others_Functions*******************************/
   onLabelChange(label: string): void {
     this.propertierstoolService.setLabel(label);
   }
@@ -47,13 +53,13 @@ export class SidebarComponent implements OnInit{
   onThicknessChange(thickness: number): void {
     this.propertierstoolService.setThickness(thickness);
   }
+
+  //button saves
   saveCurrentImage(): void {
-    //this.imageService.saveImageWithMetadata();
     this.saveImageEvent.emit()     
   }
 
   saveAllImages(): void {
-    //this.imageService.saveAllImagesWithMetadata();
     this.saveAllImagesEvent.emit()
   }
 }

@@ -1,13 +1,9 @@
-<!-- src/app/components/canvas/canvas.component.html -->
+<!-- Canvas -->
 <canvas *ngIf="isBrowser"
   #canvas class= "border-4 border-black"  
-  width="1280"
-  height="720" 
+  width="854"
+  height="480" 
   (contextmenu)="onContextMenu($event)"
 >
 </canvas>
-<!-- [ngClass]="{'hidden': !image}" -->
-<!--(mousedown)="onMouseDown($event)"
-  (mousemove)="onMouseMove($event)"
-  (mouseup)="onMouseUp($event)" 
-  (contextmenu)="onContextMenu($event)"-->
+

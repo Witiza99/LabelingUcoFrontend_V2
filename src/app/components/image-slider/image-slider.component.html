@@ -3,10 +3,11 @@
     <div class="flex flex-wrap justify-center">
       <div 
         *ngFor="let image of paginatedImages; let i = index" 
-        class="relative group flex-shrink-0"
+        class="relative group flex-shrink-0 p-2"
         [style.width]="imageSize + 'px'"
         [style.height]="imageSize + 'px'"
       >
+        <!-- Image -->
         <img 
           [src]="paginatedImageUrls[i]" 
           (click)="selectImage(i)"
@@ -16,6 +17,7 @@
           [style.height]="imageSize + 'px'"
           alt="Image {{ i }}"
         />
+        <!-- Delete image Button -->
         <button 
           (click)="deleteImage(i)"
           class="absolute top-0 left-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -24,27 +26,36 @@
         </button>
       </div>
     </div>
-    <div class="flex justify-between items-center mt-2">
-      <button 
-        *ngIf="currentPage > 1"
-        (click)="previousPage()" 
-        [disabled]="currentPage === 1"
-        class="bg-blue-500 text-white p-2 rounded"
-      >
-        Anterior
-      </button>
-      <span>Página {{currentPage}} de {{totalPages}}</span>
-      <button 
-        *ngIf="currentPage < totalPages"
-        (click)="nextPage()" 
-        [disabled]="currentPage === totalPages"
-        class="bg-blue-500 text-white p-2 rounded"
-      >
-        Siguiente
-      </button>
+    <div class="flex items-center justify-center space-x-4">
+      <!-- Button back -->
+      <div class="p-1">
+        <button 
+          *ngIf="currentPage > 1"
+          (click)="previousPage()" 
+          [disabled]="currentPage === 1"
+          class="bg-blue-500 text-white p-2 rounded"
+        >
+          Previous
+        </button>
+      </div>
+
+      <!-- Text with nº page -->
+      <span class="flex-1 text-center">Page {{currentPage}} of {{totalPages}}</span>
+    
+      <!-- Button next -->
+      <div class="p-1">
+        <button 
+          *ngIf="currentPage < totalPages"
+          (click)="nextPage()" 
+          [disabled]="currentPage === totalPages"
+          class="bg-blue-500 text-white p-2 rounded"
+        >
+          Next
+        </button>
+      </div>
     </div>
   </ng-container>
   <ng-template #noImages>
-    <p>No hay imágenes disponibles.</p>
+    <p>There aren't images.</p>
   </ng-template>
 </div>

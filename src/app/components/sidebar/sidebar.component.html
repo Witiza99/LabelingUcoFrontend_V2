@@ -1,6 +1,5 @@
-<!-- src/app/components/sidebar/sidebar.component.html -->
-<div class="p-4 bg-gray-100 border-r border-gray-300 h-full flex flex-col justify-between">
-  <!-- Contenido del sidebar -->
+<div class="p-2 bg-gray-100 border-r border-gray-300 h-full flex flex-col justify-between">
+  <!-- sidebar content -->
   <div>
     <!-- Label Name -->
     <label class="block mb-2 font-bold">Label Name:</label>
@@ -30,16 +29,16 @@
     />
   </div>
 
-  <!-- Botones para guardar -->
+  <!-- Button for saves -->
   <div class="flex flex-col items-end">
     <!-- Save Current Image Button -->
     <button *ngIf="selectedImageIndex !== null" (click)="saveCurrentImage()" class="p-2 bg-blue-500 text-white rounded w-full mb-2">
-      Guardar Imagen
+      Save Imagen
     </button>
   
     <!-- Save All Images Button -->
     <button *ngIf="images && images.length > 1" (click)="saveAllImages()" class="p-2 bg-blue-500 text-white rounded w-full">
-      Guardar Todas las Imágenes
+      Save all images
     </button>
   </div>
 </div>

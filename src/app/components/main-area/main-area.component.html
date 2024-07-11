@@ -1,11 +1,12 @@
-<!-- src/app/components/main-area/main-area.component.html -->
 <div class="flex flex-col h-full">
-  <div class="flex-1 flex justify-center items-center bg-gray-200">
+  <!-- Canvas Component -->
+  <div class="flex-1 flex justify-center items-center bg-gray-200" style="flex: 1 0 75%;">
     <app-canvas 
       [image]="selectedImage">
     </app-canvas>
   </div>
-  <div class="h-32 bg-gray-100 border-t border-gray-300 overflow-x-auto">
+  <!-- Image-Slider Component -->
+  <div class="pt-4 h-32 bg-gray-100 border-t border-gray-300 overflow-x-auto" style="flex: 1 0 25%;">
     <app-image-slider 
       (imageSelect)="selectImage($event)"
       [SaveCurrentImageEvent]="SaveCurrentImageEvent"
