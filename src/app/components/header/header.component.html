@@ -1,0 +1,31 @@
+<!-- Header -->
+<header class=" sticky top-0 bg-gray-500 text-white h-16 flex items-center justify-between">
+    <!-- Icono subida de archivos -->
+    <div class="flex items-center px-5 justify-center">
+        <input type="file" style="display: none;" id="uploader" accept="image/*, video/*" multiple (change)="triggerUpload($event)">
+        <label for="uploader" class="fa fa-bars text-white text-5xl pr-7 content-center cursor-pointer"></label>
+    </div>
+  
+  
+    <!-- Logo centrado -->
+    <div class="flex items-center justify-center lg:flex-grow">
+        <span class="text-2xl font-bold">Logo</span>
+    </div>
+  
+    <!-- Enlaces de navegación -->
+    <div class="hidden lg:flex lg:items-center lg:justify-end px-5">
+        <ul class="flex space-x-4 text-xl">
+            <li>
+                <a href="#" class="text-white hover:text-gray-300">Nav1</a>
+            </li>
+            <li>
+                <a href="#" class="text-white hover:text-gray-300">Nav2</a>
+            </li>
+            <li>
+                <a href="#" class="text-white hover:text-gray-300">Nav3</a>
+            </li>
+        </ul>
+    </div>
+</header>
+
+
