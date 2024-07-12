@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "testfinal": {
+    "frontend_labeling_uco": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -23,7 +23,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/testfinal",
+            "outputPath": "dist/frontend_labeling_uco",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -78,10 +78,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "testfinal:build:production"
+              "buildTarget": "frontend_labeling_uco:build:production"
             },
             "development": {
-              "buildTarget": "testfinal:build:development"
+              "buildTarget": "frontend_labeling_uco:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -89,7 +89,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "buildTarget": "testfinal:build"
+            "buildTarget": "frontend_labeling_uco:build"
           }
         },
         "test": {
