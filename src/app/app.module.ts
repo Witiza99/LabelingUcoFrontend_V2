@@ -11,26 +11,20 @@ import { MainAreaComponent } from './components/main-area/main-area.component';
 import { ImageSliderComponent } from './components/image-slider/image-slider.component';
 import { CanvasComponent } from './components/canvas/canvas.component';
 import { AppRoutingModule } from './app-routing.module';  // Importa el módulo de enrutamiento
-import { HttpClientModule, provideHttrm, jsonpClient, withFetch } from '@angular/common/http';
+import { provideHttrm, jsonpClient, withFetch, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    HeaderComponent,
-    ToolbarComponent,
-    SidebarComponent,
-    MainAreaComponent,
-    ImageSliderComponent,
-    CanvasComponent
-  ],
-  imports: [
-    HttpClientModule,
-    BrowserModule,
-    FormsModule,
-    AppRoutingModule  // Importa el módulo de enrutamiento aquí
-  ],
-  providers: [provideHttpClient(withFetch())],
-  bootstrap: [AppComponent]
-})
+@NgModule({ declarations: [
+        AppComponent,
+        HeaderComponent,
+        ToolbarComponent,
+        SidebarComponent,
+        MainAreaComponent,
+        ImageSliderComponent,
+        CanvasComponent
+    ],
+    bootstrap: [AppComponent], imports: [BrowserModule,
+        FormsModule,
+        AppRoutingModule // Importa el módulo de enrutamiento aquí
+    ], providers: [provideHttpClient(withFetch()), provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule { }
