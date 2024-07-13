@@ -11,7 +11,7 @@ import { MainAreaComponent } from './components/main-area/main-area.component';
 import { ImageSliderComponent } from './components/image-slider/image-slider.component';
 import { CanvasComponent } from './components/canvas/canvas.component';
 import { AppRoutingModule } from './app-routing.module';  // Importa el módulo de enrutamiento
-import { HttpClientModule, provideHttpClient, withFetch } from '@angular/common/http';
+import { HttpClientModule, provideHttrm, jsonpClient, withFetch } from '@angular/common/http';
 
 
 @NgModule({
