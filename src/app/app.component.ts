@@ -16,6 +16,8 @@ export class AppComponent implements OnInit {
   /*******************************Decorators***********************************/
   @Output() receiveSaveCurrentImagefromAPP = new EventEmitter<void>();
   @Output() receiveSaveAllImagesfromAPP = new EventEmitter<void>();
+  @Output() receiveExportCurrentImagefromAPP = new EventEmitter<string>();
+  @Output() receiveExportAllImagesfromAPP = new EventEmitter<string>();
 
 
   /*******************************Variables***********************************/
@@ -48,6 +50,14 @@ export class AppComponent implements OnInit {
 
   handleSaveAllImages() {
     this.receiveSaveAllImagesfromAPP.emit();
+  }
+
+  handleExportCurrentImage(selectedFormat: string) {
+    this.receiveExportCurrentImagefromAPP.emit(selectedFormat);
+  }
+
+  handleExportAllImages(selectedFormat: string) {
+    this.receiveExportAllImagesfromAPP.emit(selectedFormat);
   }
 
   handleFilesUploaded(files: File[]): void {

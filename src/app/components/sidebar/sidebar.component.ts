@@ -14,6 +14,8 @@ export class SidebarComponent implements OnInit{
   /*******************************Decorators***********************************/
   @Output() saveImageEvent = new EventEmitter<void>();
   @Output() saveAllImagesEvent = new EventEmitter<void>();
+  @Output() exportImageEvent = new EventEmitter<string>();
+  @Output() exportAllImagesEvent = new EventEmitter<string>();
 
   /*******************************Variables***********************************/
   label: string = 'label';
@@ -21,6 +23,7 @@ export class SidebarComponent implements OnInit{
   thickness: number = 2;    
   selectedImageIndex: number | null = null; 
   images: any[] = [];
+  selectedFormat: string = '';
 
   /*******************************Constructor***********************************/
   constructor(
@@ -61,5 +64,16 @@ export class SidebarComponent implements OnInit{
 
   saveAllImages(): void {
     this.saveAllImagesEvent.emit()
+  }
+
+  //button export
+  exportCurrentImage() {
+    if (this.selectedImageIndex !== null) {
+      this.exportImageEvent.emit(this.selectedFormat);
+    }
+  }
+
+  exportAllImages() {
+    this.exportAllImagesEvent.emit(this.selectedFormat);
   }
 }

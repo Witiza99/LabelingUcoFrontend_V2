@@ -15,6 +15,8 @@ export class ImageSliderComponent implements OnInit, OnDestroy {
   @Output() imageSelect = new EventEmitter<ImageWithMetadata | null>();
   @Input() SaveCurrentImageEvent = new EventEmitter<void>();
   @Input() SaveAllImagesEvent = new EventEmitter<void>();
+  @Input() ExportCurrentImageEvent = new EventEmitter<string>();
+  @Input() ExportAllImagesEvent = new EventEmitter<string>();
   @HostListener('window:resize', ['$event'])
   onResize(event: Event): void {
     this.updatePagination();
@@ -35,12 +37,16 @@ export class ImageSliderComponent implements OnInit, OnDestroy {
   private imagesSubscription: Subscription;
   private saveCurrentImageSubscription: Subscription;
   private saveAllImagesSubscription: Subscription;
+  private exportCurrentImageSubscription: Subscription;
+  private exportAllImagesSubscription: Subscription;
 
   /*******************************Constructor***********************************/
   constructor(private imageService: ImageService, private el: ElementRef) {
     this.imagesSubscription = new Subscription();
     this.saveCurrentImageSubscription = new Subscription();
     this.saveAllImagesSubscription = new Subscription();
+    this.exportCurrentImageSubscription = new Subscription();
+    this.exportAllImagesSubscription = new Subscription();
   }
 
   /******************************Angular_Functions*******************************/
@@ -61,6 +67,14 @@ export class ImageSliderComponent implements OnInit, OnDestroy {
       this.handleSaveAllImages();
     });
 
+    this.exportCurrentImageSubscription = this.ExportCurrentImageEvent.subscribe((selectedFormat: string) => {
+      this.handleExportCurrentImage(selectedFormat);
+    });
+
+    this.exportAllImagesSubscription = this.ExportAllImagesEvent.subscribe((selectedFormat: string) => {
+      this.handleExportAllImages(selectedFormat);
+    });
+
     this.updatePagination();
   }
 
@@ -75,6 +89,12 @@ export class ImageSliderComponent implements OnInit, OnDestroy {
     if (this.saveAllImagesSubscription) {
       this.saveAllImagesSubscription.unsubscribe();
     }
+    if (this.exportCurrentImageSubscription) {
+      this.exportCurrentImageSubscription.unsubscribe();
+    }
+    if (this.exportAllImagesSubscription) {
+      this.exportAllImagesSubscription.unsubscribe();
+    }
   }
 
   /******************************Handle_Functions*******************************/
@@ -86,6 +106,16 @@ export class ImageSliderComponent implements OnInit, OnDestroy {
   handleSaveAllImages() {
     this.updateImageUrls();
     this.imageService.saveAllImagesWithMetadata();
+  }
+
+  handleExportCurrentImage(selectedFormat: string) {
+    this.updateImageUrls();
+    this.imageService.exportSelectedImage(selectedFormat);
+  }
+
+  handleExportAllImages(selectedFormat: string) {
+    this.updateImageUrls();
+    this.imageService.exportAllImages(selectedFormat);
   }
 
   /************************Getter_and_Setter_Funtions***************************/

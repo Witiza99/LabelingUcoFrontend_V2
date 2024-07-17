@@ -18,7 +18,10 @@
       <div class="flex-1 bg-white p-2 overflow-auto">
         <app-main-area
           [receiveSaveCurrentImage]="receiveSaveCurrentImagefromAPP"
-          [receiveSaveAllImages]="receiveSaveAllImagesfromAPP">
+          [receiveSaveAllImages]="receiveSaveAllImagesfromAPP"
+          [receiveExportCurrentImage]="receiveExportCurrentImagefromAPP"
+          [receiveExportAllImages]="receiveExportAllImagesfromAPP">
+          
         </app-main-area>
       </div>
       
@@ -26,7 +29,9 @@
       <div class="w-1/6 bg-gray-100 border-l border-gray-300 overflow-hidden">
         <app-sidebar class="h-full"
           (saveImageEvent)="handleSaveCurrentImage()"
-          (saveAllImagesEvent)="handleSaveAllImages()">
+          (saveAllImagesEvent)="handleSaveAllImages()"
+          (exportImageEvent)="handleExportCurrentImage($event)"
+          (exportAllImagesEvent)="handleExportAllImages($event)">
         </app-sidebar>
       </div>
     </div>

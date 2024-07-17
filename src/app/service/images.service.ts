@@ -8,6 +8,7 @@ import JSZip from 'jszip';
 import * as ExifReader from 'exifreader';
 import { ApiService } from './api-service.service';
 import { SpinnerService } from './spinner.service';
+import { ExportService } from './export.service';
 
 
 @Injectable({
@@ -25,7 +26,8 @@ export class ImageService {
   /*******************************Constructor***********************************/
   constructor(
     private spinnerService: SpinnerService ,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private exportService: ExportService
   ) {}
 
   /************************Getter_and_Setter_Funtions***************************/
@@ -207,4 +209,20 @@ export class ImageService {
     link.click();
     URL.revokeObjectURL(link.href);
   }
+
+  // Generate and download ZIP file with format
+  async exportSelectedImage(selectedFormat: string): Promise<void> {
+    if (this.selectedImageIndex !== null) {
+      const imageWithMetadata = this.images[this.selectedImageIndex];
+      await this.exportService.exportImageWithFormat(imageWithMetadata, selectedFormat);
+    } else {
+      console.error('No image selected');
+    }
+  }
+
+  // Generate and download ZIP file for all images with format
+  async exportAllImages(selectedFormat: string): Promise<void> {
+    await this.exportService.exportAllImagesWithFormat(this.images, selectedFormat);
+  }
+
 }

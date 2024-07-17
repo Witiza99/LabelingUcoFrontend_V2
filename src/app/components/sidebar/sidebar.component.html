@@ -29,16 +29,36 @@
     />
   </div>
 
-  <!-- Button for saves -->
+  <!-- Button for saves and exports -->
   <div class="flex flex-col items-end">
+    <!-- Button for saves -->
     <!-- Save Current Image Button -->
     <button *ngIf="selectedImageIndex !== null" (click)="saveCurrentImage()" class="p-2 bg-blue-500 text-white rounded w-full mb-2">
-      Save Imagen
+      Save Image
     </button>
   
     <!-- Save All Images Button -->
-    <button *ngIf="images && images.length > 1" (click)="saveAllImages()" class="p-2 bg-blue-500 text-white rounded w-full">
-      Save all images
+    <button *ngIf="images && images.length > 1" (click)="saveAllImages()" class="p-2 bg-blue-500 text-white rounded w-full mb-4">
+      Save All Images
     </button>
+
+    <!-- Export buttons and select -->
+    <div class="w-full" *ngIf="selectedImageIndex !== null || (images && images.length > 1)">
+      <!-- Export Format Selector -->
+      <label class="block mt-4 mb-2 font-bold">Export Format:</label>
+      <select [(ngModel)]="selectedFormat" class="p-2 border border-gray-300 rounded w-full mb-4">
+        <option value="yolo">YOLO</option>
+        <!-- Add more options here as needed -->
+      </select>
+
+      <!-- Export Buttons -->
+      <button *ngIf="selectedImageIndex !== null" (click)="exportCurrentImage()" class="p-2 bg-green-500 text-white rounded w-full mb-2">
+        Export Current Image
+      </button>
+    
+      <button *ngIf="images && images.length > 1" (click)="exportAllImages()" class="p-2 bg-green-500 text-white rounded w-full mb-4">
+        Export All Images
+      </button>
+    </div>
   </div>
 </div>

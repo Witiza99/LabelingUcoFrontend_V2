@@ -15,10 +15,16 @@ export class MainAreaComponent implements OnInit {
   @Input() receiveSaveAllImages!: EventEmitter<void>;
   @Output() SaveCurrentImageEvent = new EventEmitter<void>();
   @Output() SaveAllImagesEvent = new EventEmitter<void>();
+  @Input() receiveExportCurrentImage!: EventEmitter<string>;
+  @Input() receiveExportAllImages!: EventEmitter<string>;
+  @Output() ExportCurrentImageEvent = new EventEmitter<string>();
+  @Output() ExportAllImagesEvent = new EventEmitter<string>();
 
   /*******************************Variables***********************************/
   private saveCurrentImageSubscription!: Subscription;
   private saveAllImagesSubscription!: Subscription;
+  private exportCurrentImageSubscription!: Subscription;
+  private exportAllImagesSubscription!: Subscription;
   selectedImage: ImageWithMetadata | null = null;
 
   /******************************Angular_Functions*******************************/
@@ -30,6 +36,14 @@ export class MainAreaComponent implements OnInit {
     this.saveAllImagesSubscription = this.receiveSaveAllImages.subscribe(() => {
       this.handleSaveAllImages();
     });
+
+    this.exportCurrentImageSubscription = this.receiveExportCurrentImage.subscribe((selectedFormat: string) => {
+      this.handleExportCurrentImage(selectedFormat);
+    });
+
+    this.exportAllImagesSubscription = this.receiveExportAllImages.subscribe((selectedFormat: string) => {
+      this.handleExportAllImages(selectedFormat);
+    });
   }
 
   ngOnDestroy() {
@@ -38,6 +52,12 @@ export class MainAreaComponent implements OnInit {
     }
     if (this.saveAllImagesSubscription) {
       this.saveAllImagesSubscription.unsubscribe();
+    }
+    if (this.exportCurrentImageSubscription) {
+      this.exportCurrentImageSubscription.unsubscribe();
+    }
+    if (this.exportAllImagesSubscription) {
+      this.exportAllImagesSubscription.unsubscribe();
     }
   }
 
@@ -48,6 +68,13 @@ export class MainAreaComponent implements OnInit {
 
   handleSaveAllImages() {
     this.SaveAllImagesEvent.emit();
+  }
+  handleExportCurrentImage(selectedFormat: string) {
+    this.ExportCurrentImageEvent.emit(selectedFormat);
+  }
+
+  handleExportAllImages(selectedFormat: string) {
+    this.ExportAllImagesEvent.emit(selectedFormat);
   }
 
   /******************************Others_Functions*******************************/
