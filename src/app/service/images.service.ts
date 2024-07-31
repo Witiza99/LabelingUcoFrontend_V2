@@ -3,7 +3,6 @@ import { Injectable } from '@angular/core';
 import { Subject, Observable, firstValueFrom } from 'rxjs';
 import { ImageWithMetadata } from '../interface/imagewithmetadata';
 import { Shape } from '../interface/shape';
-import { saveAs } from 'file-saver';
 import JSZip from 'jszip';
 import * as ExifReader from 'exifreader';
 import { ApiService } from './api-service.service';
@@ -161,49 +160,54 @@ export class ImageService {
   //Get blob (ZIP) and return ImageWithMetadata[] with all images and metadata
   async extractImagesFromZip(zipBlob: Blob): Promise<ImageWithMetadata[]> {
     try {
-      // Create instance JSZip y charge File ZIP
-      const zip = await JSZip.loadAsync(zipBlob);
-  
-      // Array for save all images
-      const extractedFiles: ImageWithMetadata[] = [];
-  
-      // Iterate each files from File ZIP
-      await Promise.all(
-        Object.keys(zip.files).map(async (fileName) => {
-          const zipEntry = zip.files[fileName];
-  
-          // Check if file is a folder or file
-          if (!zipEntry.dir) {
-            // Get file like blob
-            const fileData = await zipEntry.async('blob');
-  
-            // Create file 
-            const file = new File([fileData], zipEntry.name, { type: fileData.type });
-  
-            // Extract ID from file name
-            const idMatch = fileName.match(/image-(\d+)-(.+)\.png$/);
-            const imageId = idMatch ? idMatch[2] : ''; // Extract the ID
+        // Create instance JSZip y charge File ZIP
+        const zip = await JSZip.loadAsync(zipBlob);
 
-            try {
-              const metadata = await this.extractMetadataFromImage(file);
-              const imageWithMetadata: ImageWithMetadata = { id: imageId, file, metadata };
-              extractedFiles.push(imageWithMetadata);
-              console.log("Image with metadatos");
-            } catch (error) {
-              //console.log(error)
-              // If not possible get metadata from image, save image without metadata
-              const imageWithMetadata: ImageWithMetadata = { id: imageId, file, metadata: null };
-              extractedFiles.push(imageWithMetadata);
-              console.log("Image without metadatos");
-            }
-          }
-        })
-      );
-  
-      return extractedFiles;
+        // Array for save all images with their order
+        const extractedFiles: { index: number, imageWithMetadata: ImageWithMetadata }[] = [];
+
+        // Iterate each files from File ZIP
+        await Promise.all(
+            Object.keys(zip.files).map(async (fileName) => {
+                const zipEntry = zip.files[fileName];
+
+                // Check if file is a folder or file
+                if (!zipEntry.dir) {
+                    // Get file like blob
+                    const fileData = await zipEntry.async('blob');
+
+                    // Create file 
+                    const file = new File([fileData], zipEntry.name, { type: fileData.type });
+
+                    // Extract index and ID from file name
+                    const idMatch = fileName.match(/image-(\d+)-(.+)\.png$/);
+                    const index = idMatch ? parseInt(idMatch[1], 10) : -1; // Extract the index
+                    const imageId = idMatch ? idMatch[2] : ''; // Extract the ID
+
+                    try {
+                        const metadata = await this.extractMetadataFromImage(file);
+                        const imageWithMetadata: ImageWithMetadata = { id: imageId, file, metadata };
+                        extractedFiles.push({ index, imageWithMetadata });
+                        console.log("Image with metadatos");
+                    } catch (error) {
+                        //console.log(error)
+                        // If not possible get metadata from image, save image without metadata
+                        const imageWithMetadata: ImageWithMetadata = { id: imageId, file, metadata: null };
+                        extractedFiles.push({ index, imageWithMetadata });
+                        console.log("Image without metadatos");
+                    }
+                }
+            })
+        );
+
+        // Sort files by index
+        extractedFiles.sort((a, b) => a.index - b.index);
+
+        // Return sorted images
+        return extractedFiles.map(item => item.imageWithMetadata);
     } catch (error) {
-      console.error('Error with extract file from ZIP:', error);
-      throw error;
+        console.error('Error with extract file from ZIP:', error);
+        throw error;
     }
   }
 
