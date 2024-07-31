@@ -21,7 +21,7 @@ export class SidebarComponent implements OnInit{
   label: string = 'label';
   color: string = '#FF0000'; 
   thickness: number = 2;    
-  selectedImageIndex: number | null = null; 
+  selectedImageId: string | null = null; 
   images: any[] = [];
   selectedFormat: string = '';
 
@@ -34,8 +34,8 @@ export class SidebarComponent implements OnInit{
   /******************************Angular_Functions*******************************/
   ngOnInit(): void {
     // Subscribe to get index
-    this.imageService.getIndexObservable().subscribe(index => {
-      this.selectedImageIndex = index;
+    this.imageService.getIndexObservable().subscribe(id => {
+      this.selectedImageId = id;
     });
 
     // Subscribe to get image array
@@ -68,7 +68,7 @@ export class SidebarComponent implements OnInit{
 
   //button export
   exportCurrentImage() {
-    if (this.selectedImageIndex !== null) {
+    if (this.selectedImageId !== null) {
       this.exportImageEvent.emit(this.selectedFormat);
     }
   }

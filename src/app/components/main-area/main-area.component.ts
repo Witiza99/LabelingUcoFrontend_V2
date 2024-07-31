@@ -82,5 +82,7 @@ export class MainAreaComponent implements OnInit {
     this.selectedImage = image;
     this.saveCurrentImageSubscription = new Subscription();
     this.saveAllImagesSubscription = new Subscription();
+    this.exportCurrentImageSubscription = new Subscription();
+    this.exportAllImagesSubscription = new Subscription();
   } 
 }

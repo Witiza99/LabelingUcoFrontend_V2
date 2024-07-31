@@ -33,7 +33,7 @@
   <div class="flex flex-col items-end">
     <!-- Button for saves -->
     <!-- Save Current Image Button -->
-    <button *ngIf="selectedImageIndex !== null" (click)="saveCurrentImage()" class="p-2 bg-blue-500 text-white rounded w-full mb-2">
+    <button *ngIf="selectedImageId !== null" (click)="saveCurrentImage()" class="p-2 bg-blue-500 text-white rounded w-full mb-2">
       Save Image
     </button>
   
@@ -43,7 +43,7 @@
     </button>
 
     <!-- Export buttons and select -->
-    <div class="w-full" *ngIf="selectedImageIndex !== null || (images && images.length > 1)">
+    <div class="w-full" *ngIf="selectedImageId !== null || (images && images.length > 1)">
       <!-- Export Format Selector -->
       <label class="block mt-4 mb-2 font-bold">Export Format:</label>
       <select [(ngModel)]="selectedFormat" class="p-2 border border-gray-300 rounded w-full mb-4">
@@ -52,7 +52,7 @@
       </select>
 
       <!-- Export Buttons -->
-      <button *ngIf="selectedImageIndex !== null" (click)="exportCurrentImage()" class="p-2 bg-green-500 text-white rounded w-full mb-2">
+      <button *ngIf="selectedImageId !== null" (click)="exportCurrentImage()" class="p-2 bg-green-500 text-white rounded w-full mb-2">
         Export Current Image
       </button>
     

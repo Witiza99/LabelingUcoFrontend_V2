@@ -43,7 +43,12 @@
 
 <!-- Spinner -->
 <div *ngIf="showSpinner" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-  <div class="border-t-4 border-blue-500 rounded-full w-32 h-32 animate-spin"></div>
+  <div class="flex flex-col items-center">
+    <div class="border-t-4 border-blue-500 rounded-full w-32 h-32 animate-spin"></div>
+    <div *ngIf="messageSpinner" class="mt-4 text-white text-lg font-semibold">
+      {{ messageSpinner }}
+    </div>
+  </div>
 </div>
 
 <!-- Modal -->

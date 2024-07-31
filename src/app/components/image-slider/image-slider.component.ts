@@ -17,22 +17,16 @@ export class ImageSliderComponent implements OnInit, OnDestroy {
   @Input() SaveAllImagesEvent = new EventEmitter<void>();
   @Input() ExportCurrentImageEvent = new EventEmitter<string>();
   @Input() ExportAllImagesEvent = new EventEmitter<string>();
-  @HostListener('window:resize', ['$event'])
-  onResize(event: Event): void {
-    this.updatePagination();
-  }
 
   /*******************************Variables***********************************/
   imagesWithMetadata: ImageWithMetadata[] = [];
-  selectedImageIndex: number | null = null;
-  imageUrls: string[] = [];
+  selectedimagesWithMetadata: ImageWithMetadata | null = null;
+  imageUrls: Record<string, string> = {};
 
   //paginate
   currentPage = 1;
-  pageSize = 10;
+  pageSize = this.imageService.getImagePerPage();
   imageSize = 100;
-  paginatedImages: ImageWithMetadata[] = [];
-  paginatedImageUrls: string[] = [];
 
   private imagesSubscription: Subscription;
   private saveCurrentImageSubscription: Subscription;
@@ -55,7 +49,6 @@ export class ImageSliderComponent implements OnInit, OnDestroy {
       next: (updatedImages) => {
         this.imagesWithMetadata = updatedImages;
         this.updateImageUrls();
-        this.updatePagination();
       }
     });
 
@@ -74,8 +67,6 @@ export class ImageSliderComponent implements OnInit, OnDestroy {
     this.exportAllImagesSubscription = this.ExportAllImagesEvent.subscribe((selectedFormat: string) => {
       this.handleExportAllImages(selectedFormat);
     });
-
-    this.updatePagination();
   }
 
   ngOnDestroy(): void {
@@ -98,107 +89,115 @@ export class ImageSliderComponent implements OnInit, OnDestroy {
   }
 
   /******************************Handle_Functions*******************************/
-  handleSaveCurrentImage() {
-    this.updateImageUrls();
-    this.imageService.saveImageWithMetadata();
+  async handleSaveCurrentImage() {
+    // Check if exist selected image
+    if (this.selectedimagesWithMetadata !== null) {
+      //update metadata image selected
+      await this.imageService.updateMetadata(this.selectedimagesWithMetadata);
+      await this.imageService.saveImageWithMetadata();
+    }
   }
 
-  handleSaveAllImages() {
-    this.updateImageUrls();
-    this.imageService.saveAllImagesWithMetadata();
+  async handleSaveAllImages() {
+    if (this.selectedimagesWithMetadata !== null) {
+      await this.imageService.updateMetadata(this.selectedimagesWithMetadata);
+    }
+    await this.imageService.saveAllImagesWithMetadata();
   }
 
-  handleExportCurrentImage(selectedFormat: string) {
-    this.updateImageUrls();
-    this.imageService.exportSelectedImage(selectedFormat);
+  async handleExportCurrentImage(selectedFormat: string) {
+    // Check if exist selected image
+    if (this.selectedimagesWithMetadata !== null) {
+      //update metadata image selected
+      await this.imageService.updateMetadata(this.selectedimagesWithMetadata);
+      await this.imageService.exportSelectedImage(selectedFormat);
+    }
   }
 
-  handleExportAllImages(selectedFormat: string) {
-    this.updateImageUrls();
-    this.imageService.exportAllImages(selectedFormat);
+  async handleExportAllImages(selectedFormat: string) {
+    if (this.selectedimagesWithMetadata !== null) {
+      await this.imageService.updateMetadata(this.selectedimagesWithMetadata);
+    }
+    await this.imageService.exportAllImages(selectedFormat);
   }
 
   /************************Getter_and_Setter_Funtions***************************/
   get totalPages(): number {
-    return Math.ceil(this.imagesWithMetadata.length / this.pageSize);
+    return Math.ceil(this.imageService.getMaxNumberImages() / this.pageSize);
   }
 
   /******************************Others_Functions*******************************/
   updateImageUrls(): void {
-    this.imageUrls = this.imagesWithMetadata.map(image => URL.createObjectURL(image.file));
-  }
-
-  //paginate
-  updatePagination(): void {
-    this.paginateImages();
+    this.imagesWithMetadata.forEach(image => {
+      this.imageUrls[image.id] = URL.createObjectURL(image.file);
+    });
   }
 
   // Select image from image slider
-  async selectImage(index: number): Promise<void> {
-    const actualIndex = (this.currentPage - 1) * this.pageSize + index;
+  async selectImage(idselected: string): Promise<void> {
+    // Find image with id
+    const selectedImage = this.imagesWithMetadata.find(image => image.id === idselected) || null;
 
-    if (this.selectedImageIndex !== null && this.selectedImageIndex !== actualIndex) {
-      await this.imageService.updateMetadata(this.imagesWithMetadata[this.selectedImageIndex].metadata);
+    if (this.selectedimagesWithMetadata !== null && this.selectedimagesWithMetadata.id !== idselected) {
+      // Update metadata (maybe check if there are changes before update)
+      await this.imageService.updateMetadata(this.selectedimagesWithMetadata);
     }
 
-    if (actualIndex >= 0 && actualIndex < this.imagesWithMetadata.length) {
-      this.selectedImageIndex = actualIndex;
-      this.imageService.setSelectedImageIndex(this.selectedImageIndex);
-      this.imageSelect.emit(this.imagesWithMetadata[this.selectedImageIndex]);
+    this.selectedimagesWithMetadata = selectedImage;
+
+    //update selected image in image service
+    if(this.selectedimagesWithMetadata !== null){
+      this.imageService.setSelectedImageId(this.selectedimagesWithMetadata.id);
     }
+    
+    // Emit new image
+    this.imageSelect.emit(this.selectedimagesWithMetadata);
+
   }
 
   //Check if is selected
-  isSelected(index: number): boolean {
-    const actualIndex = (this.currentPage - 1) * this.pageSize + index;
-    return this.selectedImageIndex === actualIndex;
+  isSelected(id: string): boolean {
+    if(this.selectedimagesWithMetadata){
+      return this.selectedimagesWithMetadata.id === id;
+    }else{
+      return false;
+    }  
   }
 
   // Delete image from slider
-  deleteImage(index: number): void {
-    const actualIndex = (this.currentPage - 1) * this.pageSize + index;
+  async deleteImage(id: string): Promise<void> {
 
-    if (actualIndex >= 0 && actualIndex < this.imagesWithMetadata.length) {
-      this.imageUrls.splice(actualIndex, 1);
-      this.imageService.deleteImage(actualIndex);
-
-      if (this.selectedImageIndex === actualIndex) {
-        this.selectedImageIndex = null;
-        this.imageService.setSelectedImageIndex(this.selectedImageIndex);
+    // Adjust selection if needed
+    if(this.selectedimagesWithMetadata){
+      if (this.selectedimagesWithMetadata.id === id) {
+        this.selectedimagesWithMetadata = null;
+        this.imageService.setSelectedImageId(null);
         this.imageSelect.emit(null);
-      } else if (this.selectedImageIndex !== null && this.selectedImageIndex > actualIndex) {
-        this.selectedImageIndex--;
-        this.imageService.setSelectedImageIndex(this.selectedImageIndex);
       }
-
-      // Check if the current page is empty
-      if (this.paginatedImages.length === 0 && this.currentPage > 1) {
-        this.currentPage--; // Go age back
-      }
-
-      this.paginateImages();
     }
-  }
-
-  //paginate
-  paginateImages(): void {
-    const start = (this.currentPage - 1) * this.pageSize;
-    const end = start + this.pageSize;
-    this.paginatedImages = this.imagesWithMetadata.slice(start, end);
-    this.paginatedImageUrls = this.imageUrls.slice(start, end);
+    await this.imageService.deleteImage(id);
+    
+    //get images again for the same page, except if the page is empty
+    if (this.imagesWithMetadata.length === 1 && this.currentPage > 1) {
+      this.currentPage--;
+    }
+    this.imageService.setActualPage(this.currentPage);
+    this.imageService.setImages();
   }
 
   previousPage(): void {
     if (this.currentPage > 1) {
       this.currentPage--;
-      this.paginateImages();
+      this.imageService.setActualPage(this.currentPage);
+      this.imageService.setImages();
     }
   }
 
   nextPage(): void {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
-      this.paginateImages();
+      this.imageService.setActualPage(this.currentPage);
+      this.imageService.setImages();
     }
   }
 }

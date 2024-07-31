@@ -1,9 +1,10 @@
 /*******************************Imports***********************************/
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Output, EventEmitter, OnInit, OnDestroy, Inject, PLATFORM_ID, HostListener } from '@angular/core';
 import { ImageService } from './service/images.service';
 import { SpinnerService } from './service/spinner.service';
 import { ApiService } from './service/api-service.service';
-import * as JSZip from 'jszip';
+import { isPlatformBrowser } from '@angular/common';
+
 
 @Component({
   selector: 'app-root',
@@ -11,7 +12,7 @@ import * as JSZip from 'jszip';
 })
 
 //Class for Main Component APP
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
 
   /*******************************Decorators***********************************/
   @Output() receiveSaveCurrentImagefromAPP = new EventEmitter<void>();
@@ -22,26 +23,48 @@ export class AppComponent implements OnInit {
 
   /*******************************Variables***********************************/
   showSpinner:boolean = false;
+  messageSpinner:string | null = null;
   isModalVisible: boolean = false;
   frameRate: number = 1;
 
   filesFromHeader: File[] = [];
   videoFilesWithSettings: { file: File, captureInterval: number}[] = [];
-  imageToService: File[] = [];
+  imageToApi: File[] = [];
+
+  private isBrowser: boolean;
 
   /*******************************Constructor***********************************/
   constructor(
     private imageService: ImageService,
     private spinnerService: SpinnerService,
-    private apiService: ApiService
-  ) {}
+    private apiService: ApiService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   /******************************Angular_Functions*******************************/
   ngOnInit(): void {
     this.spinnerService.spinnerState.subscribe(state => {
       this.showSpinner = state;
     });
+    this.spinnerService.spinnerMessage.subscribe(state => {
+      this.messageSpinner = state;
+    });
   }
+
+  async ngOnDestroy(): Promise<void> {
+    if (this.isBrowser) {
+      console.log('ngOnDestroy called');
+      try {
+        await this.cleanupSession();
+      } catch (error) {
+        console.error('Error during session cleanup', error);
+      }
+    }
+  }
+
+  
 
   /******************************Handle_Functions*******************************/
   handleSaveCurrentImage() {
@@ -60,12 +83,12 @@ export class AppComponent implements OnInit {
     this.receiveExportAllImagesfromAPP.emit(selectedFormat);
   }
 
-  handleFilesUploaded(files: File[]): void {
+  async handleFilesUploaded(files: File[]): Promise<void> {
     this.filesFromHeader = files;
 
     //Get videos from file array
     this.videoFilesWithSettings = [];
-    this.imageToService = [];
+    this.imageToApi = [];
     for (let i = 0; i < this.filesFromHeader.length; i++) {
       const file = this.filesFromHeader[i];
       if (file.type.startsWith('video/')) {
@@ -74,7 +97,7 @@ export class AppComponent implements OnInit {
           captureInterval: 1
         });
       }else{
-        this.imageToService.push(file);
+        this.imageToApi.push(file);
       }
     }
 
@@ -82,8 +105,18 @@ export class AppComponent implements OnInit {
     if (this.videoFilesWithSettings.length > 0){
       this.showModal();
     }else{
-      //Call Service to add images
-      this.imageService.addImages(this.imageToService);
+      //Methot for upload images
+      this.spinnerService.show("Uploading images to the server, please wait...");
+      try {
+        await this.uploadImages(this.imageToApi);
+        console.log('Images uploaded successfully');
+        await this.imageService.setMaxImages();
+        this.imageService.setImages();
+      } catch (error) {
+        console.error('Error uploading images:', error);
+      } finally {
+        this.spinnerService.hide();
+      }
     }
   }
 
@@ -97,7 +130,7 @@ export class AppComponent implements OnInit {
   removeFile(i: number): void {
     this.videoFilesWithSettings.splice(i,1);
 
-    if ( this.videoFilesWithSettings.length === 0 && this.imageToService.length === 0){
+    if ( this.videoFilesWithSettings.length === 0 && this.imageToApi.length === 0){
       this.isModalVisible = false;
     }
   }
@@ -110,19 +143,23 @@ export class AppComponent implements OnInit {
   //Confirm button from modal
   async confirm(): Promise<void> {
     this.isModalVisible = false;
-    this.spinnerService.show();
+    this.spinnerService.show("Uploading images to the server, please wait...");
 
+    if(this.imageToApi.length > 0){
+      try {
+        await this.uploadImages(this.imageToApi);
+        console.log('Images uploaded successfully');
+      } catch (error) {
+        console.error('Error uploading images:', error);
+      }
+    }
+    this.spinnerService.show("Uploading videos to the server and processing them into images...");
     try {
       console.log("Processing video...");
-      const frames = await this.extractFrames(this.videoFilesWithSettings);
+      await this.extractFrames(this.videoFilesWithSettings);
       console.log("Processing video finished");
-
-      console.log(frames);
-
-      //Merge image with image from video
-      this.imageToService.push(...frames);
-      //Call image service to add new images
-      this.imageService.addImages(this.imageToService);
+      await this.imageService.setMaxImages();
+      this.imageService.setImages();
     } catch (error) {
         console.error("Error processing video frames:", error);
     } finally {
@@ -130,66 +167,56 @@ export class AppComponent implements OnInit {
     }
   }
 
-  //Extract Frames from videoFiles with Framerate
-  async extractFrames(videoFilesWithSettings: { file: File, captureInterval: number }[]): Promise<File[]> {
-    return new Promise<File[]>((resolve, reject) => {
-      const files = videoFilesWithSettings.map(videoFile => videoFile.file);
-      const frameRates = videoFilesWithSettings.map(videoFile => videoFile.captureInterval);
+  //Upload Images to backend
+  async uploadImages(images: File[] ): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
 
-      //subscribe to api, process all videos with their framerate
-      this.apiService.processVideo(files, frameRates).subscribe({
-        next: async (data: Blob) => {
-          try {
-            //Get blob(ZIP file) and extract images
-            console.log("Processing Blob with zip...")
-            const imagesFromVideo = await this.extractImagesFromZip(data);
-            console.log("End processing Blob with zip...")
-            resolve(imagesFromVideo);
-          } catch (error) {
-            console.error('Error processing files:', error);
-            reject(error);
-          }
+      //subscribe to api, upload all images
+      this.apiService.uploadImages(images).subscribe({
+        next: () => {
+          this.spinnerService.hide();//In case there's a connection error
+          resolve();
         },
         error: (error) => {
-          console.error('Error calling the API:', error);
           reject(error);
         }
       });
     });
   }
-  
-  //Get blob (ZIP) and return file[] with all images
-  async extractImagesFromZip(zipBlob: Blob): Promise<File[]> {
-    try {
-      // Create instance JSZip y charge File ZIP
-      const zip = await JSZip.loadAsync(zipBlob);
-  
-      // Array for save all images
-      const extractedFiles: File[] = [];
-  
-      // Iterate each files from File ZIP
-      await Promise.all(
-        Object.keys(zip.files).map(async (fileName) => {
-          const zipEntry = zip.files[fileName];
-  
-          // Check if file is a folder or file
-          if (!zipEntry.dir) {
-            // Get file like blob
-            const fileData = await zipEntry.async('blob');
-  
-            // Create file 
-            const file = new File([fileData], zipEntry.name, { type: fileData.type });
-  
-            // Add file to array for save all images
-            extractedFiles.push(file);
-          }
-        })
-      );
-  
-      return extractedFiles;
-    } catch (error) {
-      console.error('Error with extract file from ZIP:', error);
-      throw error;
-    }
+
+  //Extract Frames from videoFiles with Framerate
+  async extractFrames(videoFilesWithSettings: { file: File, captureInterval: number }[]): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const files = videoFilesWithSettings.map(videoFile => videoFile.file);
+      const frameRates = videoFilesWithSettings.map(videoFile => videoFile.captureInterval);
+
+      //subscribe to api, process all videos with their framerate
+      this.apiService.processVideo(files, frameRates).subscribe({
+        next: () => {
+          this.spinnerService.hide();//In case there's a connection error
+          resolve();
+        },
+        error: (error) => {
+          reject(error);
+        }
+      });
+    });
+  }
+
+  //cleanup session
+  async cleanupSession(): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+
+      //subscribe to api, end session
+      this.apiService.endSession().subscribe({
+        next: () => {
+          this.spinnerService.hide();//In case there's a connection error
+          resolve();
+        },
+        error: (error) => {
+          reject(error);
+        }
+      });
+    });
   }
 }

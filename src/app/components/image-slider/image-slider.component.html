@@ -1,25 +1,25 @@
 <div class="flex flex-col space-y-2 p-2">
-  <ng-container *ngIf="paginatedImages.length > 0; else noImages">
+  <ng-container *ngIf="imagesWithMetadata.length > 0; else noImages">
     <div class="flex flex-wrap justify-center">
       <div 
-        *ngFor="let image of paginatedImages; let i = index" 
+        *ngFor="let image of imagesWithMetadata;" 
         class="relative group flex-shrink-0 p-2"
         [style.width]="imageSize + 'px'"
         [style.height]="imageSize + 'px'"
       >
         <!-- Image -->
         <img 
-          [src]="paginatedImageUrls[i]" 
-          (click)="selectImage(i)"
-          [ngClass]="{'border-blue-500 border-2': isSelected(i)}"
+          [src]="imageUrls[image.id]" 
+          (click)="selectImage(image.id)"
+          [ngClass]="{'border-blue-500 border-2': isSelected(image.id)}"
           class="cursor-pointer object-cover"
           [style.width]="imageSize + 'px'"
           [style.height]="imageSize + 'px'"
-          alt="Image {{ i }}"
+          alt="Image {{ image.id }}"
         />
         <!-- Delete image Button -->
         <button 
-          (click)="deleteImage(i)"
+          (click)="deleteImage(image.id)"
           class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
         >
           X
