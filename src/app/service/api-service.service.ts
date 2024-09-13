@@ -57,6 +57,7 @@ export class ApiService {
 
   private startSession(): Observable<{ sessionId: string }> {
     this.spinnerService.show('Attempting to connect to the server...'); // Show spinner with message
+    console.log(this.apiUrl + 'api/start-session');
     return this.http.post<{ sessionId: string }>(this.apiUrl + 'api/start-session', {}).pipe(
       retry({
         count: Infinity, // Retry indefinitely
