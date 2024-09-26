@@ -1,0 +1,1 @@
+{"ast":null,"code":"export function get64BitValue(dataView, offset) {\n  // It's a bit tricky to handle 64 bit numbers in JavaScript. Let's\n  // wait until there are real-world examples where it is necessary.\n  return dataView.getUint32(offset + 4);\n}","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}
